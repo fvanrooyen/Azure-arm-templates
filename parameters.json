@@ -1,0 +1,40 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location_name": {
+            "value": "eastus2"
+        },
+        "availabilitySets_name": {
+            "value": "leaf-ha"
+        },
+        "virtualMachines_vm1_name": {
+            "value": "vm1"
+        },
+        "virtualMachines_vm2_name": {
+            "value": "vm2"
+        },
+        "networkInterfaces_vm1_name": {
+            "value": "vm1ni"
+        },
+        "networkInterfaces_vm2_name": {
+            "value": "vm2ni"
+        },
+        "virtualNetworks_vnet_name": {
+            "value": "mctvnet"
+        },
+        "subnet_name": {
+            "value": "mctsn1"
+        },
+        "ssh_key_data": {
+             "value":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3ZJL03tpe1FRK7cspVjVa7855C24ThSfATmIJzMfvcOYq70SlPQjJcn0BhL4xqrJ85wGGQ0IWg0oGr2fic1tvaXngVa8snRaEyU67VI+4NYMfwKPBJMGAqpj+UVBrb/QC4xF3ulDUfuE6Bmij9ppwIzzaKpPnfFACQuh5iNsoYZ8MTI13tqcwT0fcVNKim2T+Ap4DTq+bXIRNU16TY2pxA2+IeiSBmfAUKuTUnJVGVDMuaGE+QWvY4T++0Pa7JK5luzA8R/jQTAZip+5dfMP/dYZ/eOX9v177kz82FzD9KXj1NhqtSASP7GaS0A7OHYlHr3Szo9Kjwr04UwaoUuWZ"
+        },
+        "user_name": {
+            "value": "centos"
+        },
+        "vm_size": {
+            "value":"Standard_DS15_v2"
+
+        }
+    }
+}

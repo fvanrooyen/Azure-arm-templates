@@ -1,0 +1,299 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location_name": {
+            "defaultValue": "eastus2",
+            "type": "String"
+        },
+        "availabilitySets_name": {
+            "defaultValue": "leaf-ha",
+            "type": "String"
+        },
+        "virtualMachines_vm1_name": {
+            "defaultValue": "vm1",
+            "type": "String"
+        },
+        "virtualMachines_vm2_name": {
+            "defaultValue": "vm2",
+            "type": "String"
+        },
+        "networkInterfaces_vm1_name": {
+            "defaultValue": "vm1279",
+            "type": "String"
+        },
+        "networkInterfaces_vm2_name": {
+            "defaultValue": "vm2447",
+            "type": "String"
+        },
+        "virtualNetworks_vnet_name": {
+            "defaultValue": "mct-leaf-vnet",
+            "type": "String"
+        },
+        "subnet_name": {
+            "defaultValue": "Subnet1",
+            "type": "String"
+        },
+        "ssh_key_data": {
+            "type": "String"
+        },
+        "user_name": {
+            "defaultValue": "centos",
+            "type": "String"
+        },
+        "vm_size": {
+            "defaultValue": "Standard_DS15_v2",
+            "type": "String"
+        }
+    },
+    "variables": { 
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworks_vnet_name'))]",
+        "SubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet_name'))]"
+    },
+    "resources": [
+        {
+            "comments": "Creating the Availability Set for Managed Disks",
+            "type": "Microsoft.Compute/availabilitySets",
+            "sku": {
+                "name": "Aligned"
+            },
+            "name": "[parameters('availabilitySets_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "platformUpdateDomainCount": 5,
+                "platformFaultDomainCount": 2
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_vm1_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySets_name'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vm_size')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "OpenLogic",
+                        "offer": "CentOS-SRIOV",
+                        "sku": "7.3-SRIOV",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_vm1_name'),'-osdisk')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_vm1_name')]",
+                    "adminUsername": "[parameters('user_name')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/centos/.ssh/authorized_keys",
+                                    "keyData": "[parameters('ssh_key_data')]"
+                                }
+                            ]
+                        }
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm1_name'))]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm1_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('virtualMachines_vm2_name')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySets_name'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vm_size')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "OpenLogic",
+                        "offer": "CentOS-SRIOV",
+                        "sku": "7.3-SRIOV",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_vm2_name'),'-osdisk')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_vm2_name')]",
+                    "adminUsername": "[parameters('user_name')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/centos/.ssh/authorized_keys",
+                                    "keyData": "[parameters('ssh_key_data')]"
+                                }
+                            ]
+                        }
+                    },
+                    "secrets": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm2_name'))]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm2_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_vm1_name')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "b0ba0308-cd92-4428-9764-d3f3994c15db",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "etag": "W/\"4bd0da1c-c0ac-42e9-ae3d-500612df0629\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "172.16.3.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id":  "[variables('SubnetRef')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "1ntpgd5sbinujpz1ss1cwhz1nc.cx.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-03-98-22",
+                "enableAcceleratedNetworking": true,
+                "enableIPForwarding": true,
+                "primary": true,
+                "virtualMachine": {
+                    "id": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm1_name'))]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworks_vnet_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkInterfaces_vm2_name')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "941ef6da-a667-4fe4-9daa-455c55ae22aa",
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "172.16.3.5",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('SubnetRef')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": [],
+                    "internalDomainNameSuffix": "1ntpgd5sbinujpz1ss1cwhz1nc.cx.internal.cloudapp.net"
+                },
+                "macAddress": "00-0D-3A-03-97-7C",
+                "enableAcceleratedNetworking": true,
+                "enableIPForwarding": true,
+                "primary": true,
+                "virtualMachine": {
+                    "id": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm2_name'))]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworks_vnet_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_vnet_name')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceGuid": "0ff366db-0af2-441b-bf3b-94b62b1f3b6a",
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "172.16.3.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "172.16.3.0/24"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": []
+            },
+            "dependsOn": []
+        }
+    ]
+}
