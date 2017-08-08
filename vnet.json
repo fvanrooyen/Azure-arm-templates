@@ -1,0 +1,161 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location_name": {
+            "type": "String",
+            "metadata": {
+                "description": "Azure Location Name"
+            }
+        },
+        "virtualNetworks_vnet_name": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the vnet"
+            }
+        },
+        "subnet_name": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the subnet"
+            }
+        },
+        "address_range": {
+            "type": "String",
+            "metadata": {
+                "description": "The address range of the subnet ie 10.0.0.0/24"
+            }
+        },
+        "routeTables_vnet_routetable_name_1": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the First Route Table"
+            }
+        },
+        "Next_Hop_Address_1": {
+            "type": "String",
+            "metadata": {
+                "description": "Next Hop Address for the the routes in Route Table 1"
+            }
+        },
+        "routeTables_vnet_routetable_name_2": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the second Route Table"
+            }
+        },
+        "Next_Hop_Address_2": {
+            "type": "String",
+            "metadata": {
+                "description": "Next Hop Address for the routes in Route Table 2"
+            }
+        }
+    },   
+    "variables": { 
+        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworks_vnet_name'))]",
+        "SubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnet_name'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_vnet_routetable_name_1')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "routes": [
+                    {
+                        "name": "10.0.0.0_8",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/8",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_1')]"
+                        }
+                    },
+                    {
+                        "name": "172.16.0.0_12",
+                        "properties": {
+                            "addressPrefix": "172.16.0.0/12",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_1')]"
+                        }
+                    },
+                    {
+                        "name": "192.168.0.0_16",
+                        "properties": {
+                            "addressPrefix": "192.168.0.0/16",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_1')]"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+                {
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTables_vnet_routetable_name_2')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "routes": [
+                    {
+                        "name": "10.0.0.0_8",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/8",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_2')]"
+                        }
+                    },
+                    {
+                        "name": "172.16.0.0_12",
+                        "properties": {
+                            "addressPrefix": "172.16.0.0/12",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_2')]"
+                        }
+                    },
+                    {
+                        "name": "192.168.0.0_16",
+                        "properties": {
+                            "addressPrefix": "192.168.0.0/16",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('Next_Hop_Address_2')]"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_vnet_name')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location_name')]",
+            "scale": null,
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('address_range')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet_name')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('address_range')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_vnet_routetable_name_1'))]"
+                            }
+                        }
+                    }                           
+                ],
+                "virtualNetworkPeerings": []
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', parameters('routeTables_vnet_routetable_name_1'))]"
+            ]
+        }
+    ]
+}
